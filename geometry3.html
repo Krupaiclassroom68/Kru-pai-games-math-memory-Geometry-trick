@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>เกมคณิต พิชิตสูตร | Kru Pai Classroom</title>
+<style>
+  :root{
+    --bg:#0b1220;        /* ดำอมน้ำเงิน */
+    --card:#121a2c;      /* การ์ดเข้ม */
+    --accent:#ff6b6b;    /* แดงอมชมพู */
+    --accent2:#ffd166;   /* เหลืองพาสเทล */
+    --text:#ffffff;      /* ขาว */
+    --muted:#cfd9ff;     /* ฟ้าอ่อน */
+    --good:#25d0b8;      /* teal */
+    --bad:#ff6b6b;       /* salmon */
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,"TH Sarabun New",K2D,sans-serif;background:linear-gradient(180deg,var(--bg),#0e1730 60%,#0c2142);color:var(--text)}
+  .wrap{max-width:980px;margin:0 auto;padding:24px}
+  .card{background:linear-gradient(180deg,var(--card),#0f1730);border:1px solid rgba(255,255,255,.08);box-shadow:0 14px 40px rgba(0,0,0,.35);border-radius:22px;padding:22px}
+  h1{font-size:clamp(28px,4.6vw,40px);margin:0 0 10px;letter-spacing:.5px}
+  .brand{display:flex;align-items:center;gap:12px}
+  .brand .logo{width:48px;height:48px;border-radius:12px;display:grid;place-items:center;background:radial-gradient(circle at 30% 30%,var(--accent2),var(--accent));color:#1a1a1a;font-weight:800}
+  .kpc-fixed{position:fixed;right:14px;top:14px;background:radial-gradient(circle at 30% 30%,var(--accent2),var(--accent));color:#111;padding:8px 12px;border-radius:12px;font-weight:900;z-index:30;box-shadow:0 10px 24px rgba(0,0,0,.35)}
+  .muted{color:var(--muted)}
+  .row{display:flex;flex-wrap:wrap;gap:16px}
+  .field{display:flex;flex-direction:column;gap:8px}
+  input[type="text"], input[type="number"]{font-size:22px;padding:16px;border-radius:16px;border:1px solid rgba(255,255,255,.18);background:#0b1326;color:var(--text);outline:none}
+  label{font-size:18px}
+  button{cursor:pointer;border:none;padding:16px 20px;border-radius:16px;font-weight:900}
+  .btn{background:#ffffff;color:#000;box-shadow:0 8px 18px rgba(255,255,255,.18);transition:.15s;font-size:20px}
+  .btn:hover{transform:translateY(-1px)}
+  .btn.secondary{background:linear-gradient(180deg,#2e3d68,#1f2a50);color:#fff}
+  .options{display:grid;grid-template-columns:1fr;gap:16px;margin-top:8px}
+  @media(min-width:700px){.options{grid-template-columns:1fr 1fr}}
+  .opt{background:#ffffff;color:#000;border:3px solid transparent;border-radius:16px;padding:16px;display:flex;gap:12px;align-items:flex-start;font-weight:800;transition:.15s;font-size:22px}
+  .opt strong{display:inline-grid;place-items:center;min-width:38px;height:38px;border-radius:12px;background:linear-gradient(180deg,#273b7a,#1a2a5a);color:#fff}
+  .opt:hover{border-color:var(--accent2);transform:translateY(-1px)}
+  .opt.correct{border-color:var(--good);box-shadow:0 0 16px rgba(45,212,191,.6)}
+  .opt.wrong{border-color:var(--bad);box-shadow:0 0 16px rgba(248,113,113,.6)}
+  .pill{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:999px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);font-size:18px}
+  .topbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;margin-bottom:12px}
+  .feedback{font-size:22px;margin:12px 0 0}
+  .good{color:var(--good)} .bad{color:var(--bad)}
+  .hidden{display:none!important}
+  .big{font-size:clamp(26px,3.8vw,32px)}
+  .tag{font-weight:800;color:var(--accent2)}
+  .footer{opacity:.7;font-size:16px;margin-top:12px}
+  .kpc{font-weight:800;letter-spacing:.5px}
+  /* Progress bar */
+  .progress{height:12px;background:rgba(255,255,255,.1);border-radius:99px;overflow:hidden}
+  .progress > span{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--accent2),#ffc04d);transition:width .2s}
+  /* Toast popup */
+  .toast{position:fixed;inset:0;display:grid;place-items:center;pointer-events:none;z-index:50}
+  .toast .box{pointer-events:auto;background:#fff;color:#111;padding:20px 24px;border-radius:16px;box-shadow:0 20px 50px rgba(0,0,0,.45);font-size:26px;font-weight:900;min-width:280px;text-align:center}
+  .toast.good .box{border:4px solid var(--good)}
+  .toast.bad .box{border:4px solid var(--bad)}
+</style>
+</head>
+<body>
+  <div class="kpc-fixed">Kru Pai Classroom</div>
+  <div class="wrap">
+    <div class="brand">
+      <div class="logo">π</div>
+      <div>
+        <h1>เกมคณิต <span class="tag">พิชิตสูตร</span></h1>
+        <div class="muted">2 ด่าน: เลือกสูตร → คำนวณ · เลือกค่า π ได้</div>
+      </div>
+    </div>
+
+    <!-- START -->
+    <section id="screen-start" class="card" style="margin-top:14px">
+      <div class="row">
+        <div class="field" style="flex:1 1 260px">
+          <label>ใส่ชื่อผู้เล่น</label>
+          <input id="playerName" type="text" placeholder="เช่น น้องมะลิ" />
+        </div>
+      </div>
+      <div class="row" style="margin-top:10px">
+        <div class="field" style="flex:1 1 320px">
+          <label>เลือกค่าประมาณของ π</label>
+          <div class="row">
+            <label class="pill"><input type="radio" name="pi" value="3.14" checked style="margin-right:8px"> ใช้ π ≈ 3.14</label>
+            <label class="pill"><input type="radio" name="pi" value="22/7" style="margin-right:8px"> ใช้ π = 22/7</label>
+          </div>
+        </div>
+      </div>
+      <div class="row" style="margin-top:10px">
+        <button class="btn" id="btnStart">เริ่มเล่นด่านที่ 1: เลือกสูตร</button>
+        <button class="btn secondary" id="btnHow">วิธีเล่น</button>
+      </div>
+      <div class="footer">© <span class="kpc">Kru Pai Classroom</span> · คำชมแบบป๊อปอัพใหญ่เมื่อถูก/ผิด ✨</div>
+    </section>
+
+    <!-- STAGE 1: เลือกสูตร -->
+    <section id="screen-stage1" class="card hidden" style="margin-top:14px">
+      <div class="topbar">
+        <div class="pill">ผู้เล่น: <span id="s1name"></span></div>
+        <div class="pill">ข้อที่ <span id="s1qIndex">1</span>/<span id="s1Total">20</span></div>
+        <div class="pill">⏳ <span id="s1timer">10</span>s</div>
+        <div class="pill">ถูก: <span id="s1correct">0</span></div>
+      </div>
+      <div class="progress"><span id="s1prog"></span></div>
+      <div class="big" id="s1question" style="margin-top:8px"></div>
+      <div class="options" id="s1options"></div>
+      <div id="s1feedback" class="feedback"></div>
+    </section>
+
+    <!-- STAGE 1 DONE -->
+    <section id="screen-stage1-done" class="card hidden" style="margin-top:14px; text-align:center">
+      <h2 style="font-size:32px;margin:0 0 8px">ด่านที่ 1 เสร็จแล้ว 🎉</h2>
+      <p class="big">ได้คะแนน <b id="s1score"></b> / 20</p>
+      <button class="btn" id="btnToStage2" style="font-size:24px;padding:18px 26px">ไปด่านที่ 2: คำนวณชวนคิด ➜</button>
+    </section>
+
+    <!-- STAGE 2: คำนวณชวนคิด -->
+    <section id="screen-stage2" class="card hidden" style="margin-top:14px">
+      <div class="topbar">
+        <div class="pill">ผู้เล่น: <span id="s2name"></span></div>
+        <div class="pill">ข้อที่ <span id="s2qIndex">1</span>/<span id="s2Total">30</span></div>
+        <div class="pill">⏳ <span id="s2timer">20</span>s</div>
+        <div class="pill">ถูก: <span id="s2correct">0</span></div>
+      </div>
+      <div class="progress"><span id="s2prog"></span></div>
+      <div class="big" id="s2question" style="margin-top:8px"></div>
+      <div class="row" style="margin-top:8px">
+        <div class="field" style="flex:1 1 260px">
+          <label>คำตอบ</label>
+          <input id="s2answer" type="number" step="0.01" placeholder="เช่น 48 หรือ 31.4" />
+        </div>
+      </div>
+      <div class="row" style="margin-top:8px">
+        <button class="btn" id="s2submit">ตรวจคำตอบ</button>
+        <button class="btn secondary" id="s2skip">ข้าม</button>
+      </div>
+      <div id="s2feedback" class="feedback"></div>
+    </section>
+
+    <!-- SUMMARY -->
+    <section id="screen-summary" class="card hidden" style="margin-top:14px">
+      <h2 style="margin:0">สรุปผลการเล่น 🎉</h2>
+      <div class="row" style="margin:10px 0">
+        <div class="pill">ด่าน 1: <b id="sumS1">0</b> / <span>20</span></div>
+        <div class="pill">ด่าน 2: <b id="sumS2">0</b> / <span>30</span></div>
+        <div class="pill">รวม: <b id="sumAll">0</b> / 50</div>
+      </div>
+      <div id="sumMsg" class="feedback"></div>
+      <div class="row" style="margin-top:10px">
+        <button class="btn" id="btnReplay">เล่นใหม่</button>
+      </div>
+      <div class="footer">แคปหน้าจอนี้ส่งให้ครูได้เลยนะ ✨</div>
+    </section>
+  </div>
+
+  <!-- Toast popup container -->
+  <div id="toast" class="toast hidden"><div class="box" id="toastBox">ข้อความ</div></div>
+
+<script>
+// ====== Utils ======
+const $ = (s)=>document.querySelector(s);
+const EL = (tag, cls, html)=>{const e=document.createElement(tag); if(cls) e.className=cls; if(html!==undefined) e.innerHTML=html; return e};
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function clamp2(n){return Math.round(n*100)/100}
+function pick(arr){return arr[Math.floor(Math.random()*arr.length)]}
+function ri(min,max){return Math.floor(Math.random()*(max-min+1))+min}
+function showToast(msg,type='good',ms=900){
+  const t=$('#toast'); const box=$('#toastBox'); box.textContent=msg; t.className='toast '+type; t.classList.remove('hidden');
+  setTimeout(()=>{ t.classList.add('hidden'); }, ms);
+}
+
+// ====== Stage 1 data (เลือกสูตร) ======
+const FORMULAE = {
+  square: { label:"สี่เหลี่ยมจัตุรัส (พื้นที่)",
+    forms:["ด้าน × ด้าน","1/2 × ผลคูณของเส้นทแยงมุม (d²/2)","เส้นรอบรูป = 4×ด้าน","1/2 × ฐาน × สูง"],
+    corrects:["ด้าน × ด้าน"], notes:"ถ้ารู้เส้นทแยงมุม d พื้นที่ = d²/2" },
+  rectangle:{label:"สี่เหลี่ยมผืนผ้า (พื้นที่)", forms:["กว้าง × ยาว","ฐาน × สูง","πr²","1/2 × (ฐานบน+ฐานล่าง) × สูง"], corrects:["กว้าง × ยาว"]},
+  triangle:{label:"สามเหลี่ยม (พื้นที่)", forms:["1/2 × ฐาน × สูง","ฐาน × สูง","2πr","กว้าง × ยาว"], corrects:["1/2 × ฐาน × สูง"]},
+  rightTri:{label:"สามเหลี่ยมมุมฉาก (พื้นที่)", forms:["1/2 × ด้านประกอบฉาก × อีกด้านประกอบฉาก","ฐาน × สูง","πr²","กว้าง × ยาว"], corrects:["1/2 × ด้านประกอบฉาก × อีกด้านประกอบฉาก"]},
+  trapezoid:{label:"สี่เหลี่ยมคางหมู (พื้นที่)", forms:["1/2 × (ฐานบน+ฐานล่าง) × สูง","ฐาน × สูง","πr²","1/2 × ผลคูณของเส้นทแยงมุม"], corrects:["1/2 × (ฐานบน+ฐานล่าง) × สูง"]},
+  kite:{label:"รูปว่าว (พื้นที่)", forms:["1/2 × ผลคูณของเส้นทแยงมุม","ฐาน × สูง","กว้าง × ยาว","2πr"], corrects:["1/2 × ผลคูณของเส้นทแยงมุม"]},
+  rhombus:{label:"สี่เหลี่ยมเปียกปูน/ขนมเปียกปูน (พื้นที่)", forms:["1/2 × ผลคูณของเส้นทแยงมุม","ด้าน × ด้าน","ฐาน × สูง","πr²"], corrects:["1/2 × ผลคูณของเส้นทแยงมุม","ฐาน × สูง"]},
+  parallelogram:{label:"สี่เหลี่ยมด้านขนาน (พื้นที่)", forms:["ฐาน × สูง","1/2 × ฐาน × สูง","2πr","กว้าง × ยาว"], corrects:["ฐาน × สูง"]},
+  isoscelesTri:{label:"รูปหน้าจั่ว (สามเหลี่ยมหน้าจั่ว – พื้นที่)", forms:["1/2 × ฐาน × สูง","ฐาน × สูง","2πr","กว้าง × ยาว"], corrects:["1/2 × ฐาน × สูง"]},
+  circleArea:{label:"วงกลม (พื้นที่)", forms:["πr²","2πr","1/2 × ฐาน × สูง","ฐาน × สูง"], corrects:["πr²"]},
+  circleCirc:{label:"วงกลม (เส้นรอบรูป)", forms:["2πr","πr²","กว้าง × ยาว","ฐาน × สูง"], corrects:["2πr"]}
+};
+
+const S1_COUNT = 20, S2_COUNT = 30; // รวม 50 ข้อ
+const S1_TIME = 10, S2_TIME = 20;    // จับเวลาตามที่กำหนด
+
+let playerName = 'ผู้เล่น';
+let piMode = 3.14; // 3.14 | 22/7
+let s1Set=[], s1Index=0, s1Correct=0, s1Timer=S1_TIME, s1Interval=null;
+let s2Set=[], s2Index=0, s2Correct=0, s2Timer=S2_TIME, s2Interval=null;
+
+function buildStage1Set(){
+  const keys = Object.keys(FORMULAE);
+  const pool=[]; keys.forEach(k=>pool.push(k));
+  while(pool.length<S1_COUNT) pool.push(...keys);
+  s1Set = shuffle(pool).slice(0,S1_COUNT);
+}
+
+function updateProgress(stage){
+  if(stage===1){ const pct=((s1Index)/S1_COUNT)*100; $('#s1prog').style.width=pct+'%'; }
+  if(stage===2){ const pct=((s2Index)/S2_COUNT)*100; $('#s2prog').style.width=pct+'%'; }
+}
+
+function renderS1(){
+  if(s1Index>=S1_COUNT){
+    $('#screen-stage1').classList.add('hidden');
+    $('#screen-stage1-done').classList.remove('hidden');
+    $('#s1score').textContent = s1Correct;
+    return;
+  }
+  updateProgress(1);
+  const key = s1Set[s1Index], f = FORMULAE[key];
+  $('#s1qIndex').textContent = s1Index+1;
+  $('#s1Total').textContent = S1_COUNT;
+  $('#s1question').textContent = `เลือกสูตรสำหรับ: ${f.label}`;
+  $('#s1feedback').innerHTML='';
+  const optWrap = $('#s1options'); optWrap.innerHTML='';
+  const opts = shuffle([...f.forms]);
+  const letters=['A','B','C','D'];
+  opts.forEach((t,i)=>{
+    const btn = EL('button','opt',`<strong>${letters[i]}</strong><div>${t}</div>`);
+    btn.onclick = ()=>{
+      clearInterval(s1Interval);
+      const ok = (f.corrects||[]).includes(t);
+      if(ok){ s1Correct++; $('#s1correct').textContent=s1Correct; btn.classList.add('correct'); showToast('ว้าวว เก่งชะมัดเลย! ✔️','good',900); }
+      else{ btn.classList.add('wrong'); showToast('ผิดนะ แต่สู้ต่อไปนะคนเก่ง! ✘','bad',1100); $('#s1feedback').innerHTML = `<span class='muted'>คำตอบที่ถูก: <b>${(f.corrects||[]).join(' หรือ ')}</b>${f.notes?` — <i>${f.notes}</i>`:''}</span>`; }
+      setTimeout(()=>{ s1Index++; renderS1(); }, 950);
+    };
+    optWrap.appendChild(btn);
+  });
+  // timer
+  if(s1Interval) clearInterval(s1Interval);
+  s1Timer = S1_TIME; $('#s1timer').textContent=s1Timer;
+  s1Interval = setInterval(()=>{
+    s1Timer--; $('#s1timer').textContent=s1Timer;
+    if(s1Timer<=0){ clearInterval(s1Interval); showToast('หมดเวลา!','bad',900); $('#s1feedback').innerHTML = `<span class='muted'>เฉลย: <b>${(FORMULAE[s1Set[s1Index]].corrects||[]).join(' หรือ ')}</b></span>`; setTimeout(()=>{ s1Index++; renderS1(); }, 850); }
+  },1000);
+}
+
+// ====== Stage 2 (คำนวณ) ======
+function buildStage2Set(){
+  const types=['rectArea','squareArea','triangleArea','rightTriArea','trapezoidArea','kiteArea','rhombusArea','paraArea','isosTriArea','circleArea','circleCirc'];
+  const arr=[]; while(arr.length<S2_COUNT) arr.push(pick(types));
+  s2Set = arr;
+}
+
+function makeQ(t){
+  const π = (piMode===22/7)? (22/7) : 3.14;
+  switch(t){
+    case 'rectArea':{ const w=ri(3,12), h=ri(3,12); return {text:`สี่เหลี่ยมผืนผ้า กว้าง ${w} ซม. ยาว ${h} ซม. พื้นที่เท่าไร (ซม.²)`, ans:w*h, exp:`พื้นที่ = กว้าง×ยาว = ${w}×${h}`}; }
+    case 'squareArea':{
+      if(Math.random()<0.5){ const a=ri(3,12); return {text:`สี่เหลี่ยมจัตุรัส ด้าน ${a} ซม. พื้นที่เท่าไร`, ans:a*a, exp:`พื้นที่ = ด้าน×ด้าน = ${a}×${a}`}; }
+      const d=ri(4,14); const A=clamp2(d*d/2); return {text:`สี่เหลี่ยมจัตุรัส รู้เส้นทแยงมุม d=${d} ซม. พื้นที่เท่าไร`, ans:A, exp:`พื้นที่ = d²/2`}; }
+    case 'triangleArea':{ const b=ri(4,14), h=ri(3,12); const A=clamp2(0.5*b*h); return {text:`สามเหลี่ยม ฐาน ${b} ซม. สูง ${h} ซม. พื้นที่เท่าไร`, ans:A, exp:`พื้นที่ = 1/2×ฐาน×สูง`}; }
+    case 'rightTriArea':{ const a=ri(3,12), b=ri(3,12); const A=clamp2(0.5*a*b); return {text:`สามเหลี่ยมมุมฉาก ด้านประกอบฉาก ${a} และ ${b} ซม. พื้นที่เท่าไร`, ans:A, exp:`พื้นที่ = 1/2×a×b`}; }
+    case 'trapezoidArea':{ const a=ri(4,12), c=ri(6,16), h=ri(3,10); const A=clamp2(0.5*(a+c)*h); return {text:`คางหมู ฐานบน ${a} ฐานล่าง ${c} สูง ${h} (ซม.) พื้นที่เท่าไร`, ans:A, exp:`พื้นที่ = 1/2×(ฐานบน+ฐานล่าง)×สูง`}; }
+    case 'kiteArea':{ const d1=ri(4,14), d2=ri(4,14); const A=clamp2(0.5*d1*d2); return {text:`รูปว่าว d₁=${d1} d₂=${d2} ซม. พื้นที่เท่าไร`, ans:A, exp:`พื้นที่ = 1/2×d₁×d₂`}; }
+    case 'rhombusArea':{ const mode=Math.random()<0.5?'diag':'bh'; if(mode==='diag'){ const d1=ri(4,16), d2=ri(4,16); const A=clamp2(0.5*d1*d2); return {text:`สี่เหลี่ยมเปียกปูน d₁=${d1} d₂=${d2} ซม. พื้นที่เท่าไร`, ans:A, exp:`พื้นที่ = 1/2×d₁×d₂`}; } else { const b=ri(4,14), h=ri(3,12); const A=b*h; return {text:`สี่เหลี่ยมเปียกปูน ฐาน ${b} ซม. สูง ${h} ซม. พื้นที่เท่าไร`, ans:A, exp:`พื้นที่ = ฐาน×สูง`}; } }
+    case 'paraArea':{ const b=ri(4,14), h=ri(3,12); return {text:`สี่เหลี่ยมด้านขนาน ฐาน ${b} ซม. สูง ${h} ซม. พื้นที่เท่าไร`, ans:b*h, exp:`พื้นที่ = ฐาน×สูง`}; }
+    case 'isosTriArea':{ const b=ri(4,14), h=ri(3,12); const A=clamp2(0.5*b*h); return {text:`รูปหน้าจั่ว ฐาน ${b} ซม. สูง ${h} ซม. พื้นที่เท่าไร`, ans:A, exp:`พื้นที่ = 1/2×ฐาน×สูง`}; }
+    case 'circleArea':{ const r=[7,14,21][ri(0,2)]; const A=clamp2(π*r*r); return {text:`วงกลม รัศมี r=${r} ซม. พื้นที่เท่าไร (ใช้ π=${piMode===22/7?'22/7':'3.14'})`, ans:A, exp:`พื้นที่ = πr²`}; }
+    case 'circleCirc':{ const r=[7,14,21][ri(0,2)]; const C=clamp2(2*π*r); return {text:`วงกลม รัศมี r=${r} ซม. เส้นรอบรูปเท่าไร (ใช้ π=${piMode===22/7?'22/7':'3.14'})`, ans:C, exp:`เส้นรอบรูป = 2πr`}; }
+  }
+}
+
+function renderS2(){
+  if(s2Index>=S2_COUNT){ $('#screen-stage2').classList.add('hidden'); showSummary(); return; }
+  updateProgress(2);
+  const t=s2Set[s2Index]; const q=makeQ(t);
+  $('#s2qIndex').textContent=s2Index+1; $('#s2Total').textContent=S2_COUNT;
+  $('#s2question').textContent=q.text; $('#s2feedback').innerHTML=''; $('#s2answer').value=''; $('#s2answer').focus();
+  // timer
+  if(s2Interval) clearInterval(s2Interval); s2Timer=S2_TIME; $('#s2timer').textContent=s2Timer;
+  s2Interval=setInterval(()=>{ s2Timer--; $('#s2timer').textContent=s2Timer; if(s2Timer<=0){ clearInterval(s2Interval); showToast('หมดเวลา!','bad',900); $('#s2feedback').innerHTML = `<span class='muted'>${q.exp}</span>`; setTimeout(()=>{ s2Index++; renderS2(); }, 900); } },1000);
+  // actions
+  const submit=()=>{
+    clearInterval(s2Interval);
+    const v=parseFloat($('#s2answer').value);
+    if(isNaN(v)){ showToast('ยังไม่ได้ใส่ตัวเลขจ้า','bad',900); // ต่อเวลาอีกนิด
+      s2Timer = Math.max(3, s2Timer); s2Interval=setInterval(()=>{ s2Timer--; $('#s2timer').textContent=s2Timer; if(s2Timer<=0){ clearInterval(s2Interval); showToast('หมดเวลา!','bad',900); $('#s2feedback').innerHTML = `<span class='muted'>${q.exp}</span>`; setTimeout(()=>{ s2Index++; renderS2(); }, 900);} },1000); return; }
+    const ok = Math.abs(v - q.ans) <= 0.1; // (I) ผ่อนคลายทศนิยมเล็กน้อย
+    if(ok){ s2Correct++; $('#s2correct').textContent=s2Correct; showToast('เก่งสุด ๆ ไปเลย 🎉','good',900); }
+    else{ showToast('ตอบยังไม่ตรงจ้า','bad',1000); $('#s2feedback').innerHTML = `<span class='muted'>${q.exp}</span>`; }
+    setTimeout(()=>{ s2Index++; renderS2(); }, 950);
+  };
+  $('#s2submit').onclick = submit;
+  $('#s2skip').onclick = ()=>{ clearInterval(s2Interval); $('#s2feedback').innerHTML = `<span class='muted'>ข้ามข้อ: ${q.exp}</span>`; setTimeout(()=>{ s2Index++; renderS2(); }, 700); };
+  $('#s2answer').onkeydown = (e)=>{ if(e.key==='Enter') submit(); };
+}
+
+function startStage2(){
+  $('#screen-stage1-done').classList.add('hidden');
+  $('#screen-stage2').classList.remove('hidden'); $('#s2name').textContent=playerName; s2Correct=0; $('#s2correct').textContent=0; buildStage2Set(); s2Index=0; updateProgress(2); renderS2();
+}
+
+function showSummary(){
+  $('#screen-summary').classList.remove('hidden');
+  const total = s1Correct + s2Correct;
+  $('#sumS1').textContent = `${s1Correct}`;
+  $('#sumS2').textContent = `${s2Correct}`;
+  $('#sumAll').textContent = total;
+  const pass = total>=40; // 80%
+  $('#sumMsg').innerHTML = pass ? `<span class='good'>เยี่ยมมาก! ผ่านเกณฑ์ 80% 💖</span>` : `<span class='bad'>ยังไม่ผ่าน แต่เก่งมากแล้ว! ลองใหม่อีกครั้งนะ 🌈</span>`;
+}
+
+// ====== Start bindings ======
+$('#btnStart').onclick = ()=>{
+  playerName = ($('#playerName').value||'ผู้เล่น').trim(); $('#s1name').textContent=playerName;
+  const piSel = document.querySelector('input[name="pi"]:checked').value;
+  piMode = (piSel==='22/7')? 22/7 : 3.14;
+  $('#screen-start').classList.add('hidden'); $('#screen-stage1').classList.remove('hidden');
+  s1Correct=0; $('#s1correct').textContent=0; buildStage1Set(); s1Index=0; updateProgress(1); renderS1();
+};
+$('#btnHow').onclick = ()=>{
+  alert(`วิธีเล่น\n\nด่าน 1: เลือกสูตรให้ตรงกับรูป/หัวข้อ (10 วินาที/ข้อ)\nด่าน 2: คำนวณชวนคิด ใส่คำตอบเป็นตัวเลข (20 วินาที/ข้อ)\n\nตัวเลือกเสริม:\n• เลือกค่า π ได้ที่หน้าแรก (3.14 หรือ 22/7)\n• สี่เหลี่ยมเปียกปูน ยอมรับทั้ง ฐาน×สูง และ 1/2×d1×d2\n• วงกลมใช้ r ∈ {7,14,21} เพื่อคิดเร็ว\n\nเกณฑ์ผ่าน: 40/50 (80%)`);
+};
+$('#btnReplay').onclick = ()=> location.reload();
+$('#btnToStage2').onclick = startStage2;
+</script>
+</body>
+</html>
